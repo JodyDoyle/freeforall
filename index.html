@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDS</title>
+    <style>
+    @font-face {
+        font-family: 'james';
+        src: url('font/james811.ttf');
+    }
+    #useFont {
+        font-family: 'james';
+        font-size: 0px;
+    }
+    </style>
+    <script src="js/pixi.min.js"></script>
+    <script>
+        //let brimSheet = createPlayerSheet("images/tankSheetBlue.png");
+        //let reynaSheet = createPlayerSheet("images/tankSheetBlue.png");
+        //let omenSheet = createPlayerSheet("images/dpsSheetBlue.png");
+        //let currentHealth;
+        let bullets = [];
+        let bulletCount = 0;
+        let app;
+        let c = 0;
+        let framee = 0;
+        let b = true;
+        let tt = false;
+        let clickLock = false;
+        let ttime = 200;
+        let mainScreen;
+        let brim;
+        let reyna;
+        let omen;
+        let rein;
+        let ana;
+        let tracer;
+        let topText;
+        let moneyText;
+        let pistol;
+        let fishingRod;
+        let dagger;
+        let greenPotion;
+        let redPotion;
+        let fsh;
+        let inventoryImage;
+        let currentItem;
+        let coinSprite;
+        let sprite;
+        let vWall1;
+        let vWall2;
+        let hWall1;
+        let hWall2;
+        let hWall3;
+        let hWall4;
+        let vWall3;
+        let vWall4;
+        let vWall5;
+        let vWall6;
+        let vWall7;
+        let vWall8;
+        let vWall9;
+        let vWall10;
+        let water;
+        let blueMerchantMood;
+        let neonPinkMerchantMood;
+        let curmer;
+        let selectingFish = false;
+        let inventory = [];
+        let testArray = ['chicken', 'BAKAW!'];
+        let sprites = [];
+        let uiSprites = [];
+        let inventorySprites = [];
+        let texts = [];
+        let keys = {};
+        let playerSheet = {};
+        let prevMovement = [];
+        let bulletSpeed = 12;
+        let playerSpeed = 5;
+        let money = 0;
+        let collisionCheck = 0;
+        let uptime;
+        let moved = false;
+        let wait = false;
+        let switchedWeapons = false;
+        let playerTeam = "red" //This will update at the start of the game depending on which team the player is on
+        let dashCD = 0;
+        let dashSpeedReduction = 0;
+
+        window.onload = function () {
+            app = new PIXI.Application(
+                {
+                    width: 1664,
+                    height: 2048,
+                    backgroundColor: 0xff99df
+                }
+            );
+            console.dir(app);
+
+            
+
+            document.querySelector("#gameDiv").appendChild(app.view);
+            app.stage.interactive = true;
+
+            mainScreen = new PIXI.Container();
+            mainScreen.interactive = true;
+            app.stage.addChild(mainScreen);
+
+            //currentHealth = createText("100/100", 2, 100, "james");
+            let i = 0;
+            let j = 0;
+            let grass = new PIXI.Sprite.from("images/greyFloor.png");
+            while(i < app.view.width)
+            {
+                while(j < app.view.height)
+                {
+                    grass = createSpriteByPixel("images/greyFloor.png", i, j, "background");
+                    j+=64;
+                    //console.log(j);
+                }
+                j = 0;
+                i+=64;
+            }
+            grass = createSpriteByPixel("images/greyFloor.png", i, j, "background");
+            
+            grass.anchor.set(0.5);
+            grass.x = 0;
+            grass.y = 0;
+            
+            mainScreen.addChild(grass);
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            ////////// Okay so I need to change this so that it calls a function that gathers context and chooses an appropriate action e.g. /////////////////////
+            ///////// picking up a fish if I am close to the lake or firing a bullet if I have a gun /////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            document.querySelector("#gameDiv").addEventListener("pointerdown", clickContext); ////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            //mainScreen.on('mousedown', fireBullet);
+
+            //Making an instance of the sprite
+            
+
+            //brim = createAnimatedSpriteByPixel("images/tankSheetBlue.png", 400, 1750, "blue");
+
+            //Making an instance of the sprite
+            reyna = createAnimatedSpriteByPixel("images/supportSheetBlue.png", 266, 1700, "blue");
+            //reyna.name = "reyna";
+            //reyna = createSprite("images/supportSpriteBlue.png", 3, 4, "blue");
+            //reyna.setTexture = "images/supportSpriteRed.png"
+
+            //Making an instance of the sprite
+            //omen = createAnimatedSpriteByPixel("images/damageSheetBlue.png", 600, 1700, "blue");
+
+            //Making an instance of the sprite
+            rein = new PIXI.Sprite.from("images/tankSpriteRed.png");
+            rein.anchor.set(0.5);
+            rein.x = 400;
+            rein.y = 1800;
+            rein.up = true;
+            rein.left = true;
+            rein.down = true;
+            rein.right = true;
+            rein.team = "red";
+            rein.zOrder = 100;
+
+            mainScreen.addChild(rein);
+
+            //ana = createSpriteByPixel("images/supportSpriteRed.png", 600, 1900, "red");
+            fishingRod = createSpriteByPixel("images/fishingRod.png", 600, 1900, "pickup");
+            fishingRod.name = "fishingRod";
+            fishingRod.type = "fishingRod";
+            fishingRod.image = "images/fishingRod.png";
+            fishingRod.smallImage = "images/fishingRodSmall.png";
+            fishingRod.equip = true;
+
+            //Making an instance of the sprite
+            //tracer = createSpriteByPixel("images/damageSpriteRed.png", 266, 1900, "red");
+            pistol = createSpriteByPixel("images/gun.png", 266, 1900, "pickup");
+            pistol.name = "pistol";
+            pistol.type = "gun";
+            pistol.image = "images/gun.png";
+            pistol.smallImage = "images/gunSmall.png";
+            pistol.equip = true;
+
+            //Making the dagger
+            dagger = createSpriteByPixel("images/dagger.png", 850, 1900, "pickup");
+            dagger.name = "dagger";
+            dagger.type = "melee";
+            dagger.image = "images/dagger.png";
+            dagger.smallImage = "images/daggerSmall.png";
+            dagger.equip = true;
+
+            greenPotion = createSpriteByPixel("images/greenPotion.png", 1100, 1900, "pickup");
+            greenPotion.name = "greenPotion";
+            greenPotion.type = "potion";
+            greenPotion.image = "images/greenPotion.png";
+            greenPotion.smallImage = "images/greenPotionSmall.png";
+            greenPotion.equip = true;
+
+            /*
+            water = createSpriteByPixel("images/water.png", 600, 1000, "wall");
+            water.type = "water";
+
+            let conBox = createContextBox(970, 1250, 3);
+            
+            merchant1 = createSpriteByPixel("images/regularMerchant.png", 170, 1250, "wall");
+            merchant1.type = "merchant";
+            merchant1.name = "merchant1"
+
+            merchant2 = createSpriteByPixel("images/blueMerchant.png", 170, 1450, "wall");
+            merchant2.type = "merchant";
+            merchant2.name = "merchant2"
+
+            merchant3 = createSpriteByPixel("images/neonPinkMerchant.png", 170, 1050, "wall");
+            merchant3.type = "merchant";
+            merchant3.name = "merchant3"
+            
+
+            setMerchantMoods();
+            console.log(blueMerchantMood);
+            */
+
+            /////////////////////////////// Do the UI Sprites last so they end up on top //////////////////////////////////////////
+
+
+            inventorySprites.push(createSpriteByPixel("images/currentItem.png", rein.x + 250, rein.y + 400, "UI"));
+
+            coinSprite = (createSpriteByPixel("images/coin.png", rein.x - 350, rein.y + 400, "UI"));
+
+            moneyText = createUIText("X " + money, rein.x - 300, rein.y + 400, "james", moneyText);
+
+            let ssheet = new PIXI.BaseTexture.from("images/inventorySlot.png");
+            let lpSheet = {};
+
+            lpSheet["regularSprite"] = [
+            new PIXI.Texture(ssheet, new PIXI.Rectangle(0, 0, 32, 32))
+            ];
+
+            lpSheet["disabled"] = [
+            new PIXI.Texture(ssheet, new PIXI.Rectangle(32, 0, 32, 32))
+            ];
+
+            lpSheet["selectable"] = [
+            new PIXI.Texture(ssheet, new PIXI.Rectangle(64,0,32,32))
+            ];
+
+            lpSheet["unselectable"] = [
+            new PIXI.Texture(ssheet, new PIXI.Rectangle(96,0,32,32))
+            ];
+
+            i = 0;
+            let inc = -142;
+            //console.log(inventorySprites.length);
+            while(i<10)
+            {
+                inventorySprites.push(createSpriteFromSheet(lpSheet, rein.x + inc, rein.y + 400, "UI"));
+                inventorySprites[inventorySprites.length-1].name = i+1;
+                inc += 32;
+                i++;
+            }
+
+            console.log("App width = " + app.view.width);
+            console.log("App height = " + app.view.height);
+
+            
+            window.addEventListener("keydown", keysDown);
+            window.addEventListener("keyup", keysUp);
+
+            app.ticker.minFPS = 30;
+            app.ticker.maxFPS = 60;
+
+            app.ticker.add(gameLoop);
+        }
+
+        function keysDown(e) {
+            //console.log(e.keycode);
+            /*
+            w = 87
+            a = 65
+            s = 83
+            d = 68
+            e = 69
+            */
+            
+            keys[e.keyCode] = true;
+
+        }
+
+        function keysUp(e) {
+            //wwconsole.log(e.keycode);
+
+            keys[e.keyCode] = false;
+
+        }
+
+
+
+        function gameLoop() {
+            
+
+            //world.position.set(app.screen.width/2, app.screen.height/2);
+            //world.scale.set(whatever you want)
+            //world.rotation = some_rotation
+
+            //console.log("rein.up = " + rein.up);
+            //framee++;
+            //console.log("Frame" + framee);
+            moved = false;
+            //console.log("The playerSpeed is: (Movement) " + playerSpeed);
+            //E
+            if(keys["69"])
+            {
+                /*console.log("aBox.y = " + rein.getBounds().y);
+                let i = 0;
+                let l = inventory.length;
+                while(i<l)
+                {
+                    console.log("inventory " + i + " is " + inventory[i]);
+                    i++;
+                }
+                */
+               console.log("dashCD is: " + dashCD);
+               if(inventory[0].type == 'melee' && dashCD == 0)
+               {
+                  playerSpeed += 100;
+                  dashCD += 240;
+                  dashSpeedReduction += 5;
+               }
+            }
+            // W
+            if(keys["87"] && rein.up) {
+                //console.log("I forlayed the W button and rein.up is: " + rein.up);
+                rein.y -= playerSpeed;
+                moved = true;
+                //console.log("Movement function: moved = " + moved);
+            }
+            // A
+            if(keys["65"] && rein.left) {
+                //console.log("I forlayed the A button and rein.left is: " + rein.left);
+                rein.x -= playerSpeed;
+                moved = true;
+            }
+            // S
+            if(keys["83"] && rein.down) {
+                //console.log("I forlayed the S button and rein.down is: " + rein.down);
+                rein.y += playerSpeed;
+                moved = true;
+            }
+            // D
+            if(keys["68"] && rein.right) {
+                //console.log("I forlayed the D button and rein.right is: " + rein.right);
+                rein.x += playerSpeed;
+                moved = true;
+            }
+            
+            //P
+            if(keys["80"])
+            {
+                //console.log("bBox.x = " + brim.getBounds().x);
+                //console.log("bBox.y = " + brim.getBounds().y);
+                //console.log("bBox.width = " + brim.getBounds().width);
+                //console.log("bBox.height = " + brim.getBounds().height);
+                //console.log("Mainscreen.position.x = " + mainScreen.position.x)
+                //console.log("Mainscreen.position.y = " + mainScreen.position.y)
+                console.log("rein.x = " + rein.x)
+                console.log("rein.y = " + rein.y)
+            }
+            //Q
+            if(keys["81"])
+            {
+                //mainScreen.removeChild(inventory[0].smallChild);
+                //console.log("inventory[0].smallChild.team = " + inventory[0].smallChild.team);
+                let tempx = inventory[0].smallChild.x
+                inventory[0].smallChild.x = inventory[1].smallChild.x;
+                inventory[1].smallChild.x = tempx;
+            }
+            //R
+            if(keys["82"])
+            {
+                console.log(inventory[0].name);
+                //console.log("aBox.x = " + rein.getBounds().x);
+            }
+            //console.log("Gameloop");
+            //console.log("rein position 1: " + rein.y);
+            doUpdates();
+            
+            mainScreen.position.x = -200 + (rein.x - app.view.width / 2) * -1;
+            mainScreen.position.y = -600 + (rein.y - app.view.height / 2) * -1;
+            
+            //mainScreen.pivot.x = rein.x;
+            //mainScreewn.pivot.y = rein.y;
+
+            //console.log("rein position 2: " + rein.y);
+            
+            
+
+            
+        }
+
+        
+        function changeFlag(flag)
+        {
+            if(flag == true)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        function getInventoryCoords(x)
+        {
+            let xadjustment = 0;
+            let yadjustment = 0;
+            /* W
+            if(keys["87"] && rein.up) {
+                yadjustment += playerSpeed;
+            }
+            // A
+            if(keys["65"] && rein.left) {
+                xadjustment += playerSpeed;
+            }
+            // S
+            if(keys["83"] && rein.down) {
+                yadjustment -= playerSpeed;
+            }
+            // D
+            if(keys["68"] && rein.right) {
+                xadjustment -= playerSpeed;
+            }
+            */
+            switch(x)
+            {
+                case "y": 
+                    return rein.y + 400 + yadjustment;
+                    break;
+                case 0:
+                    return rein.x + 250 + xadjustment;
+                    break;
+                case 1:
+                    return rein.x - 142 + xadjustment;
+                    break;
+                case 2:
+                    return rein.x - 110 + xadjustment;
+                    break;
+                case 3:
+                    return rein.x - 78 + xadjustment;
+                    break;
+                case 4:
+                    return rein.x - 46 + xadjustment;
+                    break;
+                case 5:
+                    return rein.x - 14 + xadjustment;
+                    break;
+                case 6:
+                    return rein.x + 18 + xadjustment;
+                    break;
+                case 7:
+                    return rein.x + 50 + xadjustment;
+                    break;
+                case 8:
+                    return rein.x + 82 + xadjustment;
+                    break;
+                case 9:
+                    return rein.x + 116 + xadjustment;
+                    break;
+                case 10:
+                    return rein.x + 148 + xadjustment;
+                    break;
+                default:
+                    return 0;
+            }
+        }
+
+        function sleep(ms) 
+        {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // function to decide what is done (if anything) when the player clicks the mouse
+        function clickContext(e)
+        {
+            if(selectingFish)
+            {
+                let x = getInventoryClick(e);
+                unlockMovement();
+                if(x>0)
+                {
+                    switch(curmer.name)
+                    {
+                        case "merchant1":
+                            regularMerchant(x);
+                            break;
+                        case "merchant2":
+                            blueMerchant(x);
+                            break;
+                        case "merchant3":
+                            neonPinkMerchant(x);
+                            break;
+                    }
+                }
+                unselectFish();
+                
+            }
+            else{
+
+            let check = checkRelevantIntersection(rein);
+            //console.log("check = " + check)
+            if(check != 0)
+            {
+                switch(check.type)
+                {
+                    case "merchant":
+                        curmer = check;
+                        merchant(check);
+                        break;
+                    default:
+                        // Do nothing
+                }
+            }
+            else if(typeof inventory[0] != "undefined" && !clickLock)
+            {
+                console.log("I am a cartoon");
+                if(inventory[0].name == "pistol")
+                {
+                    console.log("SOS please someoen help me");
+                    fireBullet(e);
+                }
+                else if(inventory[0].type == "fishingRod")
+                {
+                    fish();
+                }
+                else if(inventory[0].type == "melee")
+                {
+                    swing(e);
+                }
+                else if(inventory[0].type == "potion")
+                {
+                    usePotion(e);
+                }
+            }
+            else
+            {
+                topText = activateTopText("TOP TEXT " + c, 120, "james");
+                c++
+                let raz = Math.random() * 800000000000;
+                /*console.log("sigmoid(" + raz + ") is " + sigmoid(raz));
+                console.log(raz + " % 2 = " + raz % 2);
+                console.log("sigmoid(8) is " + sigmoid(8));
+                console.log("sigmoid(-1) is " + sigmoid(-1.5));
+                console.log("sigmoid(0) is " + sigmoid(0));
+                console.log("sigmoid(1) is " + sigmoid(1));
+                console.log("sigmoid(0.4) is " + sigmoid(0.4));
+                console.log(blueMerchantMood);
+                console.log("e.clientX is: " + e.clientX);
+                console.log("e.clientY is: " + e.clientY);
+                console.log("inventorySprites[1].getGlobalPosition().x is: " + inventorySprites[1].getGlobalPosition().x);
+                console.log("inventorySprites[1].getGlobalPosition().y is: " + inventorySprites[1].getGlobalPosition().y);
+                console.dir();
+                */
+                //console.dir(brim);
+            }
+            }
+        }
+
+        function getInventoryClick(e)
+        {
+            let i = 1;
+            while(i<inventorySprites.length)
+            {
+                if(e.clientX < inventorySprites[i].getBounds().right + 10 &&
+                   e.clientX > inventorySprites[i].getBounds().left + 10 &&
+                   e.clientY > inventorySprites[i].getBounds().top + 10 &&
+                   e.clientY < inventorySprites[i].getBounds().bottom + 10)
+                    return i;
+
+                i++;
+            }
+            return -1;
+        }
+
+        async function fish()
+        {
+            console.log("We are in the fish function!");
+            if(inventory.length > 10)
+                return 0;
+            let i = 0;
+            let l = sprites.length;
+            let b = true;
+            console.dir(inventorySprites[inventory.length]);
+
+            while(i<l)
+            {
+                if(spritesIntersect(rein,sprites[i]))
+                {
+                    if(sprites[i].type == "water")
+                    {
+                        console.log("We are in the roots of the fish!");
+                        // Fish!
+                        // Lock movement
+                        lockMovement();
+                        // Wait a couple of seconds
+                        topText = activateTopText("Fishing...", 120, "james");
+                        await sleep(2000);
+
+                        
+                        // Eventually add a timing based mechanic to catch a fish and a fishing animation
+                        // Roll a random number, 30% chance of common fish, 20% chance of one of the rarer fish, each with unique attributes,
+                        // and 10% chance of the super rare fish which all merchants will buy for a high price
+                        let rand = Math.random() * 10;
+                        if(rand < 1)
+                        {
+                            topText = activateTopText("You caught a Rainbow Fish!", 200, "james");
+                            fsh = createSpriteByPixel("images/rainbowFishSmall.png", getInventoryCoords(inventory.length), getInventoryCoords("y"), "UI");
+                            inventorySprites[inventory.length].textures = inventorySprites[inventory.length].sheet.disabled;
+                            inventory.push({smallChild: fsh, equip: false, name: "Rainbow Fish", basePrice: 20, type: "fish"});
+                        }
+                        else if(rand < 3)
+                        {
+                            topText = activateTopText("You caught a Catfish!", 200, "james");
+                            fsh = createSpriteByPixel("images/catfishSmall.png", getInventoryCoords(inventory.length), getInventoryCoords("y"), "UI");
+                            inventorySprites[inventory.length].textures = inventorySprites[inventory.length].sheet.disabled;
+                            inventory.push({smallChild: fsh, equip: false, name: "Catfish", basePrice: 10, type: "fish"});
+                        }
+                        else if(rand < 5)
+                        {
+                            topText = activateTopText("You caught an Eel!", 200, "james");
+                            fsh = createSpriteByPixel("images/eelSmall.png", getInventoryCoords(inventory.length), getInventoryCoords("y"), "UI");
+                            inventorySprites[inventory.length].textures = inventorySprites[inventory.length].sheet.disabled;
+                            inventory.push({smallChild: fsh, equip: false, name: "Eel", basePrice: 8, type: "fish"});
+                        }
+                        else if(rand < 7)
+                        {
+                            topText = activateTopText("You caught a Zander!", 200, "james");
+                            fsh = createSpriteByPixel("images/zanderSmall.png", getInventoryCoords(inventory.length), getInventoryCoords("y"), "UI");
+                            inventorySprites[inventory.length].textures = inventorySprites[inventory.length].sheet.disabled;
+                            inventory.push({smallChild: fsh, equip: false, name: "Zander", basePrice: 6, type: "fish"});
+                        }
+                        else
+                        {
+                            topText = activateTopText("You caught a Trout!", 200, "james");
+                            fsh = createSpriteByPixel("images/troutSmall.png", getInventoryCoords(inventory.length), getInventoryCoords("y"), "UI");
+                            inventorySprites[inventory.length].textures = inventorySprites[inventory.length].sheet.disabled;
+                            inventory.push({smallChild: fsh, equip: false, name: "Trout", basePrice: 2, type: "fish"});
+                        }
+
+                        unlockMovement();
+
+
+                    }
+                    else
+                    {
+                        // Do nothing
+                    }
+            
+                }
+                i++;
+            }
+        }
+
+        function unselectFish()
+        {
+            selectingFish = false;
+            let i = 1;
+            while(i<inventory.length)
+            {
+                if(inventory[i].equip)
+                    inventorySprites[i].textures = inventorySprites[i].sheet.regularSprite;
+                else
+                    inventorySprites[i].textures = inventorySprites[i].sheet.disabled;
+                i++;
+            }
+            // Change the colours of the inventory back
+        }
+
+        function removeInventoryItem(x)
+        {
+            mainScreen.removeChild(inventory[x].smallChild);
+            inventory.splice(x,1);
+            while(x<inventory.length)
+            {
+                inventory[x].smallChild.x -=32;
+                x++;
+            }
+        }
+
+        function lockMovement()
+        {
+            prevMovement = [rein.up, rein.down, rein.left, rein.right];
+            rein.up = false;
+            rein.down = false;
+            rein.left = false;
+            rein.right = false;
+            clickLock = true;
+        }
+
+        function unlockMovement()
+        {
+            rein.up = prevMovement[0];
+            rein.down = prevMovement[1];
+            rein.left = prevMovement[2];
+            rein.right = prevMovement[3];
+            clickLock = false;
+        }
+
+        function pickup(item)
+        {
+            var l = inventory.length;
+            if(l > 10)
+                return 0;
+            inventory.push(item);
+            createSpriteByPixel(item.smallImage, getInventoryCoords(l), getInventoryCoords("y"), "UI");
+            item.smallChild = uiSprites[uiSprites.length-1];
+            mainScreen.removeChild(item);
+            //console.log("I have " + inventory[0].name + " in my inventory now!");
+        }
+
+        
+
+    </script>
+</head>
+<body>
+
+    <div id = "useFont">We need this to load the font for some reason</div>
+
+    <div id = "gameDiv" style = "border: 2px solid red;"></div>
+
+    <script src="intersections.js">
+    </script>
+
+    <script src="createSprites.js">
+    </script>
+
+    <script src="bullets.js">
+    </script>
+
+    <script src="updates.js">
+    </script>
+
+    <script src="merchants.js">
+    </script>
+
+    <script src="melee.js">
+    </script>
+
+    <script src="potions.js">
+    </script>
+    
+</body>
+</html>
